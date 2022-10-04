@@ -1,16 +1,18 @@
 const Book = require("../models/Book.model");
+const Author = require("../models/Author.model");
 
 const router = require("express").Router();
 
 //READ: List all books
 router.get("/books", (req, res, next) => {
   Book.find()
+    .populate("author")
     .then( booksFromDB => {
         res.render("books/books-list", {books: booksFromDB})
     })
     .catch( err => {
       console.log("error getting books from DB", err);
-      next();
+      next(err);
     })
 });
 
@@ -20,6 +22,7 @@ router.get("/books/:bookId", (req, res, next) => {
   const id = req.params.bookId;
 
   Book.findById(id)
+    .populate("author")
     .then( bookDetails => {
       res.render("books/book-details", bookDetails);
     } )
@@ -32,7 +35,14 @@ router.get("/books/:bookId", (req, res, next) => {
 
 //CREATE: display form
 router.get("/books/create", (req, res, next) => {
-  res.render("books/book-create");
+  Author.find()
+    .then( (authorsArr) => {
+      res.render("books/book-create", {authorsArr});
+    })
+    .catch(err => {
+      console.log("error getting authors from DB", err);
+      next(err);
+    })
 })
 
 
@@ -52,7 +62,7 @@ router.post("/books/create", (req, res, next) => {
     })
     .catch(err => {
       console.log("error creating new book in DB", err);
-      next();
+      next(err);
     })
 
 })
